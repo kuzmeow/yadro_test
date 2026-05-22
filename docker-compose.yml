@@ -1,0 +1,46 @@
+services:
+  notification-service:
+    restart: always
+    container_name: notification-service
+    env_file:
+      - .env
+    command: make run
+    depends_on:
+      smetapp-db:
+        condition: service_healthy
+      smetapp-redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: notification-service-test-pg
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - notification-service-test-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  redis:
+    image: redis
+    restart: always
+    container_name: notification-service-test-redis
+    volumes:
+      - notification-service-test-redis:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  notification-service-test-pg:
+  notification-service-test-redis:
