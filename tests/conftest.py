@@ -153,19 +153,5 @@ async def test_client(test_app) -> AsyncGenerator[AsyncClient, Any]:
 # ---------------------------------------------------------------------------
 
 pytest_plugins = [
-    "tests.common.db.db_fixtures",
-    "tests.common.broker.broker_fixtures",
-    "tests.common.fixtures",
-    "tests.common.configs",
-    "tests.common.services",
     "tests.common.my_mocker",
-    "tests.common.samples.common",
-    "tests.common.samples.verification_token",
-    "tests.common.samples.user",
-    "tests.common.samples.jwt_token",
-    "tests.common.samples.project",
-    "tests.common.samples.template",
-    "tests.common.factories.adapters",
-    "tests.common.factories.repositories",
-    "tests.common.factories.services",
 ]

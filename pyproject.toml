@@ -1,5 +1,5 @@
 [project]
-name = "yadro-test"
+name = "notification-service"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
@@ -17,11 +17,12 @@ dependencies = [
     "flask-cors>=6.0.2",
     "asgiref>=3.11.1",
     "python-dotenv>=1.2.2",
+    "uvloop>=0.22.1; sys_platform != 'win32'",
 ]
 
-#[build-system]
-#requires = ["uv_build>=0.9.17,<0.10.0"]
-#build-backend = "uv_build"
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"
 
 [project.scripts]
 app = "notification_service:run_app"

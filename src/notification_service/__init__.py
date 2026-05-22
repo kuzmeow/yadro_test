@@ -7,12 +7,12 @@ from asgiref.wsgi import WsgiToAsgi
 from dishka.integrations.flask import setup_dishka
 from flask import Flask
 from flask_cors import CORS
-from presentation.routes import register_blueprints
 
 from notification_service.application.config import ApplicationSettings
 from notification_service.application.di.container import create_container
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.presentation.core.exception_handler import attach_exception_handlers
+from notification_service.presentation.routes import register_blueprints
 
 
 def run_app() -> None:

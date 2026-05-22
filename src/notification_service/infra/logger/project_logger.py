@@ -15,8 +15,6 @@ class ProjectLogger:
         """
 
         self.log_level = settings.log_level
-        self.max_log_size = settings.max_size_mb
-        self.backup_count = settings.backup_count
         self.pre_registered_loggers = settings.pre_registered_loggers
 
         self._console_handler = self._create_console_handler()
