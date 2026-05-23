@@ -19,4 +19,5 @@ class NotificationMapper:
             message=obj.message,
             channel_data=obj.channel_data,
             status=obj.status,
+            error_text=obj.error_text,
         )

@@ -1,13 +1,14 @@
 """Реализация репозитория проектов для PostgreSQL."""
 
 from dataclasses import asdict
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from notification_service.domain.common.entities.value_objects.config import PaginationConfig
-from notification_service.domain.notification.entities.dto.notification_dto import NotificationSearchDTO
+from notification_service.domain.notification.entities.dto.notification_dto import SearchNotificationDTO
 from notification_service.domain.notification.entities.notification_entity import Notification as NotificationEntity
 from notification_service.domain.notification.exceptions.notification_exceptions import NotificationNotFound
 from notification_service.domain.notification.protocols.notification_db_repo_protocol import NotificationDBProtocol
@@ -38,7 +39,7 @@ class NotificationPgRepository(NotificationDBProtocol):
         """
 
         data = asdict(entity)
-        data["channel_data"] = data.pop("channel_data")["value"]
+        data["channel_data"] = asdict(entity.channel_data.value) if entity.channel_data is not None else None
         query = insert(self.model).values(**data).returning(self.model)
 
         result = await self.db.execute(query)
@@ -56,12 +57,11 @@ class NotificationPgRepository(NotificationDBProtocol):
         :return: None
         """
 
-        query = (
-            update(self.model)
-            .values(status=entity.status)
-            .where(self.model.uid == entity.uid)
-            .returning(self.model.uid)
-        )
+        data: dict[str, Any] = {"status": entity.status}
+        if entity.error_text is not None:
+            data["error_text"] = entity.error_text
+
+        query = update(self.model).values(**data).where(self.model.uid == entity.uid).returning(self.model.uid)
 
         result = await self.db.execute(query)
         updated_uid = result.scalar_one_or_none()
@@ -104,7 +104,7 @@ class NotificationPgRepository(NotificationDBProtocol):
 
         return self.mapper.orm_to_entity(obj=obj)
 
-    async def search(self, dto: NotificationSearchDTO) -> list[NotificationEntity]:
+    async def search(self, dto: SearchNotificationDTO) -> list[NotificationEntity]:
         """Поиск данных по фильтрам с пагинацией.
 
         :param dto: Данные для поиска и пагинации.

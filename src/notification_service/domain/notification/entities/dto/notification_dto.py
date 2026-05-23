@@ -8,7 +8,7 @@ from notification_service.domain.notification.entities.enums.notification_enums 
 
 
 @dataclass(frozen=True)
-class NotificationRegistrationDTO:
+class EnqueueNotificationDTO:
     type: NotificationTypeEnum
     recipient: str
     subject: str | None
@@ -17,7 +17,7 @@ class NotificationRegistrationDTO:
 
 
 @dataclass(frozen=True)
-class NotificationSearchDTO:
+class SearchNotificationDTO:
     status: NotificationStatusEnum | None
     limit: int | None
     offset: int | None

@@ -3,7 +3,7 @@
 import uuid
 from typing import Protocol
 
-from notification_service.domain.notification.entities.dto.notification_dto import NotificationSearchDTO
+from notification_service.domain.notification.entities.dto.notification_dto import SearchNotificationDTO
 from notification_service.domain.notification.entities.notification_entity import Notification
 
 
@@ -38,7 +38,7 @@ class NotificationDBProtocol(Protocol):
         :return: Доменная сущность или None, если запись не найдена.
         """
 
-    async def search(self, dto: NotificationSearchDTO) -> list[Notification]:
+    async def search(self, dto: SearchNotificationDTO) -> list[Notification]:
         """Поиск данных по фильтрам с пагинацией.
 
         :param dto: Данные для поиска и пагинации.

@@ -27,6 +27,7 @@ class Notification:
     message: str
     channel_data: ChannelData | None
     status: NotificationStatusEnum
+    error_text: str | None
 
     def __post_init__(self) -> None:
         self._check_recipient_format()
@@ -68,6 +69,7 @@ class Notification:
             message=message,
             channel_data=channel_data_obj,
             status=NotificationStatusEnum.QUEUED,
+            error_text=None,
         )
 
     @classmethod
@@ -82,6 +84,7 @@ class Notification:
         message: str,
         channel_data: dict | None,
         status: NotificationStatusEnum,
+        error_text: str | None,
     ) -> "Notification":
         """Воссоздает сущность из данных БД."""
         channel_data_obj = (
@@ -99,6 +102,7 @@ class Notification:
             message=message,
             channel_data=channel_data_obj,
             status=status,
+            error_text=error_text,
         )
 
     def set_pending(self):

@@ -1,7 +1,5 @@
 """Создание и запуск приложения."""
 
-import asyncio
-
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
 from dishka.integrations.flask import setup_dishka
@@ -28,8 +26,8 @@ def run_app() -> None:
     container = create_container()
     setup_dishka(container, app)
 
-    settings = asyncio.run(container.get(ApplicationSettings))
-    logger_factory = asyncio.run(container.get(LoggerFactory))
+    settings = container.get(ApplicationSettings)
+    logger_factory = container.get(LoggerFactory)
     logger = logger_factory(name=__name__)
 
     attach_exception_handlers(app=app, logger_factory=logger_factory)

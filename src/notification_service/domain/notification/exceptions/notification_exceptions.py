@@ -44,3 +44,10 @@ class NotificationStatusConflict(NotificationException):
     def __init__(self, prev_status: NotificationStatusEnum, new_status: NotificationStatusEnum):
         reason = f"Cannot set {prev_status} notification status to {new_status}"
         super().__init__(details={"reason": reason})
+
+
+class NotificationSendingFailed(NotificationException):
+    """Notification sending failed"""
+
+    status_code = 500
+    service_code = "005"
