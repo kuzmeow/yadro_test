@@ -153,4 +153,5 @@ async def test_client(test_app) -> AsyncGenerator[AsyncClient, Any]:
 
 pytest_plugins = [
     "tests.common.my_mocker",
+    "tests.common.samples.notification_samples",
 ]

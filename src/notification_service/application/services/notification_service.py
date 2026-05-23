@@ -2,7 +2,7 @@ from random import random
 
 from asgiref.server import logger
 
-from notification_service import LoggerFactory
+from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.domain.notification.entities.notification_entity import Notification
 from notification_service.domain.notification.exceptions.notification_exceptions import NotificationSendingFailed
 from notification_service.domain.notification.protocols.notification_service_protocol import NotificationServiceProtocol

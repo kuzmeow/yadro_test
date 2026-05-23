@@ -17,7 +17,7 @@ class Notification(UIDMixin, TimestampsMixin, Base):
     type: Mapped[NotificationTypeEnum] = mapped_column(Enum(NotificationTypeEnum), nullable=False)
     recipient: Mapped[str] = mapped_column(VARCHAR(320), nullable=False)
     subject: Mapped[str | None] = mapped_column(VARCHAR(500), nullable=True)
-    message: Mapped[str] = mapped_column(TEXT(2000), nullable=False)
+    message: Mapped[str] = mapped_column(TEXT, nullable=False)
     channel_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     status: Mapped[NotificationStatusEnum] = mapped_column(Enum(NotificationStatusEnum), nullable=False)
     error_text: Mapped[str | None] = mapped_column(VARCHAR(500), nullable=True)

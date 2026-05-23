@@ -3,8 +3,8 @@
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 
-from notification_service import LoggerFactory
 from notification_service.application.services.notification_service import NotificationService
+from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.domain.notification.entities.notification_entity import Notification
 from notification_service.domain.notification.exceptions.notification_exceptions import NotificationSendingFailed
 from notification_service.domain.notification.protocols.notification_db_repo_protocol import NotificationDBProtocol

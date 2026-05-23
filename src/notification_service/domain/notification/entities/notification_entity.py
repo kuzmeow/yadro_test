@@ -37,7 +37,7 @@ class Notification:
             return
         if self.recipient.startswith("+") and self.type == NotificationTypeEnum.SMS:
             return
-        if "@" in self.recipient and self.type == NotificationTypeEnum.EMAIL:
+        if "@" in self.recipient and not self.recipient.startswith("@") and self.type == NotificationTypeEnum.EMAIL:
             return
         if self.recipient.lstrip("-").isdigit() and self.type == NotificationTypeEnum.TELEGRAM:
             return

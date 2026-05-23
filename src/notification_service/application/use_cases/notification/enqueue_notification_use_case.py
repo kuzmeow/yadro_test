@@ -1,4 +1,4 @@
-from notification_service import LoggerFactory
+from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.domain.notification.entities.dto.notification_dto import EnqueueNotificationDTO
 from notification_service.domain.notification.entities.notification_entity import Notification
 from notification_service.domain.notification.protocols.notification_db_repo_protocol import NotificationDBProtocol
