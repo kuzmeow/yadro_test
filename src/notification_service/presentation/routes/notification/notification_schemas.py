@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, StringConstraints
+from pydantic import BaseModel, EmailStr, Field, StringConstraints
 
 from notification_service.domain.notification.entities.enums.notification_enums import (
     NotificationStatusEnum,
@@ -38,7 +38,7 @@ TelegramChatId = Annotated[str, StringConstraints(pattern=r"^-?[1-9]\d{4,15}$")]
 PhoneNumber = Annotated[str, StringConstraints(pattern=r"^\+[1-9]\d{6,14}$")]
 
 Recipient = Annotated[
-    EmailStr | TelegramUsername | TelegramChatId | PhoneNumber,
+    PhoneNumber | TelegramUsername | EmailStr | TelegramChatId,
     StringConstraints(min_length=1, max_length=320, strip_whitespace=True),
 ]
 Subject = Annotated[str, StringConstraints(min_length=1, max_length=500, strip_whitespace=True)]
@@ -72,8 +72,8 @@ class SearchNotificationSchema(BaseModel):
     """
 
     status: NotificationStatusEnum | None = None
-    limit: int | None = None
-    offset: int | None = None
+    limit: int | None = Field(default=None, ge=0)
+    offset: int | None = Field(default=None, ge=0)
 
 
 class ReadNotificationSchema(BaseModel):
