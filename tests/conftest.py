@@ -4,6 +4,7 @@ import os
 from collections.abc import AsyncGenerator
 from typing import Any
 
+import nest_asyncio
 import pytest
 import pytest_asyncio
 from dishka import Container, Provider, Scope, make_container, provide
@@ -18,6 +19,8 @@ from notification_service.application.config import ApplicationSettings
 from notification_service.application.di.providers import InfraProvider, SettingsProvider
 from notification_service.infra.db.adapters.postgres_adapter import PostgresAdapter
 from notification_service.infra.db.models.base.base_model import Base
+
+nest_asyncio.apply()
 
 # ---------------------------------------------------------------------------
 #  Testcontainers / CI services
@@ -157,4 +160,5 @@ pytest_plugins = [
     "tests.common.factories.adapters",
     "tests.common.factories.repositories",
     "tests.common.factories.services",
+    "tests.common.db.db_fixtures",
 ]
