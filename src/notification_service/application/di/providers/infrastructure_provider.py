@@ -9,6 +9,7 @@ from notification_service.domain.common.entities.value_objects.config import Log
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.infra.broker.adapters.redis_adapter import RedisAdapter
 from notification_service.infra.db.adapters.postgres_adapter import PostgresAdapter
+from notification_service.infra.db.mappers.notification.notification_mapper import NotificationMapper
 from notification_service.infra.logger.project_logger import ProjectLogger
 
 
@@ -50,3 +51,7 @@ class InfraProvider(Provider):
     @provide(scope=Scope.APP)
     def get_logger_factory(self, project_logger: ProjectLogger) -> LoggerFactory:
         return project_logger.get_logger
+
+    @provide(scope=Scope.APP)
+    def get_project_mapper(self) -> NotificationMapper:
+        return NotificationMapper()
