@@ -15,6 +15,8 @@ from notification_service.domain.notification.exceptions.notification_exceptions
     NotificationStatusConflict,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestNotificationCreate:
     def test_create_sets_queued_status_and_auto_fields(self, valid_email_data):

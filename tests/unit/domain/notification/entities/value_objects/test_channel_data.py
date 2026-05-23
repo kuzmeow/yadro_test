@@ -11,6 +11,8 @@ from notification_service.domain.notification.exceptions.notification_exceptions
     NotificationInvalidChannelDataForType,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestChannelDataFactory:
     """Тесты фабричного метода ChannelData.from_dict."""

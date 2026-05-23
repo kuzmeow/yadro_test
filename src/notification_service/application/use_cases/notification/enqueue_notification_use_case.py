@@ -31,10 +31,10 @@ class EnqueueNotificationUseCase:
         )
         self.logger.info(f"Enqueueing notification {notification.uid}")
 
-        enqueued = await self.notification_db_repo.save(entity=notification)
+        saved = await self.notification_db_repo.save(entity=notification)
 
-        await self.notification_tasks.enqueue_notification(notification=notification)
+        await self.notification_tasks.enqueue_notification(notification=saved)
 
         self.logger.info(f"Notification {notification.uid} enqueued")
 
-        return enqueued
+        return saved
