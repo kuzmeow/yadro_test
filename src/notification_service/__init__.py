@@ -19,7 +19,8 @@ def run_app() -> None:
     :return: None
     """
 
-    # какой кошмар
+    # Какой кошмар
+    # Почему не FastApi?
     app = Flask("Notification Service")
 
     register_blueprints(app)

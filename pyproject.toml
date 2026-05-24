@@ -19,7 +19,6 @@ dependencies = [
     "uvloop>=0.22.1; sys_platform != 'win32'",
     "email-validator>=2.3.0",
     "psycopg2-binary>=2.9.12",
-    "nest-asyncio>=1.6.0",
 ]
 
 [build-system]

@@ -31,7 +31,7 @@ services:
 
   postgres:
     image: postgres:17.5-alpine
-    container_name: notification-service-test-pg
+    container_name: notification-service-pg
     restart: always
     env_file:
       - .env
@@ -48,7 +48,7 @@ services:
   redis:
     image: redis
     restart: always
-    container_name: notification-service-test-redis
+    container_name: notification-service-redis
     volumes:
       - notification-service-test-redis:/data
     ports:

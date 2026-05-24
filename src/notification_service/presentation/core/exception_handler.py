@@ -5,6 +5,7 @@ from werkzeug.exceptions import NotFound
 from notification_service.domain.common.exceptions.common_exceptions import InternalServerError
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.domain.core.domain_exception import DomainException
+from notification_service.domain.notification.exceptions import NotificationSendingFailed
 
 
 def attach_exception_handlers(app: Flask, logger_factory: LoggerFactory):
@@ -17,7 +18,7 @@ def attach_exception_handlers(app: Flask, logger_factory: LoggerFactory):
     @app.errorhandler(DomainException)
     async def domain_exception_handler(exc: DomainException) -> tuple[Response, int]:
         """Все доменные исключения -> структурированный JSON"""
-        if isinstance(exc, InternalServerError):
+        if isinstance(exc, InternalServerError | NotificationSendingFailed):
             logger.error("InternalServerError", extra={"details": exc.details})
             exc.details = {}
 
