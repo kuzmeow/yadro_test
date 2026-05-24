@@ -21,7 +21,7 @@ def make_mock_password_service(
     def _build(cfg: NotificationServiceMockConfig) -> NotificationServiceProtocol:
         service = mocker.MagicMock(spec=NotificationServiceProtocol)
 
-        service.send_notification = mocker.AsyncMock()
+        service.send_notification = mocker.Mock()
         if cfg.send_notification_raise:
             service.send_notification.side_effect = NotificationSendingFailed
 

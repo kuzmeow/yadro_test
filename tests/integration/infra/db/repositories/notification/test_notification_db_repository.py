@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 import pytest_asyncio
 from dishka import Container
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from notification_service.domain.common.entities.value_objects.config import PaginationConfig
 from notification_service.domain.notification.entities import Notification as DomainNotification
@@ -13,9 +13,7 @@ from notification_service.infra.db.repositories.notification.notification_db_rep
 
 
 @pytest_asyncio.fixture
-async def test_notification_pg_repository(
-    db_session: AsyncSession, dishka_container: Container
-) -> NotificationPgRepository:
+async def test_notification_pg_repository(db_session: Session, dishka_container: Container) -> NotificationPgRepository:
     """Возвращает тестируемый экземпляр репозитория NotificationPgRepository"""
 
     return NotificationPgRepository(
@@ -27,17 +25,17 @@ async def test_notification_pg_repository(
 
 async def test_create_notification_successfully(
     clear_notification_db_table_after_test,
-    db_session: AsyncSession,
+    db_session: Session,
     test_notification_pg_repository: NotificationPgRepository,
     sample_notification: DomainNotification,
 ):
-    obj_from_db = await db_session.get(NotificationModel, sample_notification.uid)
+    obj_from_db = db_session.get(NotificationModel, sample_notification.uid)
     assert obj_from_db is None
 
-    result = await test_notification_pg_repository.save(sample_notification)
+    result = test_notification_pg_repository.save(sample_notification)
     assert result == sample_notification
 
-    obj_from_db = await db_session.get(NotificationModel, result.uid)
+    obj_from_db = db_session.get(NotificationModel, result.uid)
 
     channel_data_dict = (
         asdict(sample_notification.channel_data.value) if sample_notification.channel_data is not None else None
@@ -58,14 +56,14 @@ async def test_create_notification_successfully(
 async def test_update_notification_status_successfully(
     clear_notification_db_table_after_test,
     db_sample_notification: tuple[DomainNotification, NotificationModel],
-    db_session: AsyncSession,
+    db_session: Session,
     test_notification_pg_repository: NotificationPgRepository,
 ):
     domain_entity, _ = db_sample_notification
     domain_entity.set_pending()
-    await test_notification_pg_repository.update_status(entity=domain_entity)
+    test_notification_pg_repository.update_status(entity=domain_entity)
 
-    obj_from_db = await db_session.get(NotificationModel, domain_entity.uid)
+    obj_from_db = db_session.get(NotificationModel, domain_entity.uid)
     assert obj_from_db is not None
     assert obj_from_db.status == domain_entity.status
 
@@ -73,15 +71,15 @@ async def test_update_notification_status_successfully(
 async def test_update_notification_status_to_failed_successfully(
     clear_notification_db_table_after_test,
     db_sample_notification: tuple[DomainNotification, NotificationModel],
-    db_session: AsyncSession,
+    db_session: Session,
     test_notification_pg_repository: NotificationPgRepository,
 ):
     domain_entity, _ = db_sample_notification
     domain_entity.set_failed()
     domain_entity.error_text = "Failed for some reason"
-    await test_notification_pg_repository.update_status(entity=domain_entity)
+    test_notification_pg_repository.update_status(entity=domain_entity)
 
-    obj_from_db = await db_session.get(NotificationModel, domain_entity.uid)
+    obj_from_db = db_session.get(NotificationModel, domain_entity.uid)
     assert obj_from_db is not None
     assert obj_from_db.status == domain_entity.status
     assert obj_from_db.error_text == domain_entity.error_text
@@ -97,7 +95,7 @@ async def test_search_notifications_without_params_successfully(
     sent_domain_entity, _ = db_sent_notification
 
     dto = SearchNotificationDTO(status=None, limit=None, offset=None)
-    result = await test_notification_pg_repository.search(dto=dto)
+    result = test_notification_pg_repository.search(dto=dto)
     assert pending_domain_entity in result
     assert sent_domain_entity in result
 
@@ -112,7 +110,7 @@ async def test_search_notifications_with_status_successfully(
     sent_domain_entity, _ = db_sent_notification
 
     dto = SearchNotificationDTO(status=NotificationStatusEnum.PENDING, limit=None, offset=None)
-    result = await test_notification_pg_repository.search(dto=dto)
+    result = test_notification_pg_repository.search(dto=dto)
     assert pending_domain_entity in result
     assert sent_domain_entity not in result
 
@@ -124,5 +122,5 @@ async def test_search_notifications_with_limit_successfully(
     test_notification_pg_repository: NotificationPgRepository,
 ):
     dto = SearchNotificationDTO(status=None, limit=1, offset=None)
-    result = await test_notification_pg_repository.search(dto=dto)
+    result = test_notification_pg_repository.search(dto=dto)
     assert len(result) == 1

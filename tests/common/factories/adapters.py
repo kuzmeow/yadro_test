@@ -20,7 +20,7 @@ def make_mock_notification_tasks(
     def _build(cfg: NotificationTasksMockConfig) -> NotificationTasksProtocol:
         adapter = mocker.MagicMock(spec=NotificationTasksProtocol)
 
-        adapter.enqueue_notification = mocker.AsyncMock()
+        adapter.enqueue_notification = mocker.Mock()
 
         return adapter
 

@@ -1,5 +1,6 @@
 from flask import Flask, Response, jsonify
 from pydantic import ValidationError
+from werkzeug.exceptions import NotFound
 
 from notification_service.domain.common.exceptions.common_exceptions import InternalServerError
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
@@ -32,6 +33,17 @@ def attach_exception_handlers(app: Flask, logger_factory: LoggerFactory):
 
         return make_error_response(
             code="VAL-001", message="Validation failed", details={"fields": fields}, status_code=422
+        )
+
+    @app.errorhandler(NotFound)
+    def api_not_found_handler(exc: NotFound) -> tuple:
+        """Обработчик 404: ресурс не найден."""
+
+        return make_error_response(
+            code="SYS-001",
+            message="Resource not found",
+            details={"path": exc.description if hasattr(exc, "description") else None},
+            status_code=404,
         )
 
     @app.errorhandler(Exception)

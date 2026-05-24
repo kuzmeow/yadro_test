@@ -4,13 +4,13 @@ import os
 from collections.abc import AsyncGenerator
 from typing import Any
 
-import nest_asyncio
 import pytest
 import pytest_asyncio
 from dishka import Container, Provider, Scope, make_container, provide
 from dishka.integrations.flask import FlaskProvider, setup_dishka
 from flask import Flask
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import Engine
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 
@@ -19,8 +19,6 @@ from notification_service.application.config import ApplicationSettings
 from notification_service.application.di.providers import InfraProvider, SettingsProvider
 from notification_service.infra.db.adapters.postgres_adapter import PostgresAdapter
 from notification_service.infra.db.models.base.base_model import Base
-
-nest_asyncio.apply()
 
 # ---------------------------------------------------------------------------
 #  Testcontainers / CI services
@@ -37,7 +35,7 @@ def postgres_url():
     if os.environ.get("CI"):
         yield os.environ.get("DATABASE_URL")
     else:
-        with PostgresContainer(image="postgres:17.5-alpine", driver="asyncpg") as pg:
+        with PostgresContainer(image="postgres:17.5-alpine", driver="psycopg2") as pg:
             yield pg.get_connection_url()
 
 
@@ -107,16 +105,19 @@ async def dishka_container(app_settings: ApplicationSettings):
 # ---------------------------------------------------------------------------
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def _init_database(dishka_container: Container):
+@pytest.fixture(scope="session", autouse=True)
+def _init_database(dishka_container: Container):
     """Создаёт таблицы в тестовой БД перед запуском тестов."""
     adapter = dishka_container.get(PostgresAdapter)
-    engine = adapter._engine
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+    engine: Engine = adapter._engine
+
+    with engine.begin() as conn:
+        Base.metadata.drop_all(conn)
+        Base.metadata.create_all(conn)
+
     yield
-    await engine.dispose()
+
+    engine.dispose()
 
 
 # ---------------------------------------------------------------------------

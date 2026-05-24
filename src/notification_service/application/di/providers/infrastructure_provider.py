@@ -1,9 +1,8 @@
-import asyncio
 from collections.abc import Generator
 
 from dishka import Provider, Scope, provide
 from redis import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from notification_service.application.config import ApplicationSettings
 from notification_service.domain.common.entities.value_objects.config import LoggerConfig
@@ -12,16 +11,8 @@ from notification_service.infra.broker.adapters.redis_adapter import RedisAdapte
 from notification_service.infra.db.adapters.postgres_adapter import PostgresAdapter
 from notification_service.infra.db.mappers.notification.notification_mapper import NotificationMapper
 from notification_service.infra.logger.project_logger import ProjectLogger
-
-
-def _run_async(coro):
-    """Безопасный запуск async-кода из sync-контекста. Работает в uvicorn, pytest, CLI."""
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(coro)
-
-    return loop.run_until_complete(coro)
+from notification_service.infra.taskiq.background_loop_manager import BackgroundLoopManager
+from notification_service.infra.taskiq.post_commit_queue import PostCommitQueue
 
 
 class InfraProvider(Provider):
@@ -30,43 +21,44 @@ class InfraProvider(Provider):
     scope = Scope.APP
 
     @provide
+    def get_loop_manager(self, logger_factory: LoggerFactory) -> BackgroundLoopManager:
+        manager = BackgroundLoopManager(logger_factory=logger_factory)
+        manager.start()
+        return manager
+
+    @provide
     def get_db_adapter(self, settings: ApplicationSettings) -> PostgresAdapter:
-        """Создать адаптер PostgreSQL."""
         return PostgresAdapter(settings=settings)
 
     @provide
     def get_redis_adapter(self, settings: ApplicationSettings) -> RedisAdapter:
-        """Создать адаптер Redis."""
         return RedisAdapter(settings=settings)
 
     @provide(scope=Scope.REQUEST)
-    def get_db_session(self, adapter: PostgresAdapter) -> Generator[AsyncSession]:
-        """Sync-генератор сессии."""
+    def get_db_session(self, adapter: PostgresAdapter, post_commit_queue: PostCommitQueue) -> Generator[Session]:
+        """Синхронный генератор сессии. Коммит/роллбэк/закрытие."""
         session = adapter.get_session()
-
         try:
             yield session
+            session.commit()
+            post_commit_queue.execute_all()
         except Exception:
-            _run_async(session.rollback())
+            session.rollback()
             raise
-        else:
-            try:
-                _run_async(session.commit())
-            except Exception:
-                _run_async(session.rollback())
-                raise
         finally:
-            _run_async(session.close())
+            session.close()
 
     @provide(scope=Scope.REQUEST)
     def get_broker_client(self, adapter: RedisAdapter) -> Generator[Redis]:
-        """Sync-генератор Redis-клиента."""
-        cm = adapter.get_client()
-        client = _run_async(cm.__aenter__())
-        try:
-            yield client
-        finally:
-            _run_async(cm.__aexit__(None, None, None))
+        """Синхронный генератор для Redis-клиента."""
+        client = adapter.get_client()
+        yield client
+
+    @provide(scope=Scope.REQUEST)
+    def get_post_commit_queue(
+        self, logger_factory: LoggerFactory, loop_manager: BackgroundLoopManager
+    ) -> PostCommitQueue:
+        return PostCommitQueue(logger_factory=logger_factory, loop_manager=loop_manager)
 
     @provide
     def get_project_logger(self, settings: LoggerConfig) -> ProjectLogger:

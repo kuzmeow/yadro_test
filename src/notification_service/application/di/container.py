@@ -2,6 +2,7 @@
 
 from dishka import AsyncContainer, Container, make_async_container, make_container
 from dishka.integrations.flask import FlaskProvider
+from dishka.integrations.taskiq import TaskiqProvider
 
 from notification_service.application.di.providers import (
     InfraProvider,
@@ -10,7 +11,7 @@ from notification_service.application.di.providers import (
 from notification_service.application.di.providers.notification_provider import NotificationProvider
 
 
-def create_container() -> Container:
+def flask_container() -> Container:
     """Создать и настроить синхронный DI-контейнер."""
     return make_container(
         FlaskProvider(),
@@ -20,10 +21,10 @@ def create_container() -> Container:
     )
 
 
-def create_async_container() -> AsyncContainer:
+def taskiq_container() -> AsyncContainer:
     """Создать и настроить асинхронный DI-контейнер."""
     return make_async_container(
-        FlaskProvider(),
+        TaskiqProvider(),
         SettingsProvider(),
         InfraProvider(),
         NotificationProvider(),

@@ -22,14 +22,14 @@ def make_mock_notification_db(
     def _build(cfg: NotificationDBMockConfig) -> NotificationDBProtocol:
         repo = mocker.MagicMock(spec=NotificationDBProtocol)
 
-        repo.save = mocker.AsyncMock()
+        repo.save = mocker.Mock()
         repo.save.return_value = sample_notification
 
-        repo.update_status = mocker.AsyncMock()
+        repo.update_status = mocker.Mock()
         if cfg.update_status_raise:
             repo.update_status.side_effect = NotificationNotFound
 
-        repo.search = mocker.AsyncMock()
+        repo.search = mocker.Mock()
         repo.search.return_value = [sample_notification]
 
         return repo

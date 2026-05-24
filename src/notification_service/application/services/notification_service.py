@@ -12,7 +12,7 @@ class NotificationService(NotificationServiceProtocol):
     def __init__(self, logger_factory: LoggerFactory) -> None:
         self.logger = logger_factory(__name__)
 
-    async def send_notification(self, notification: Notification) -> None:
+    def send_notification(self, notification: Notification) -> None:
         """Отправить уведомление.
 
         :param notification: Доменная сущность уведомления.

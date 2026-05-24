@@ -16,9 +16,9 @@ broker = RedisStreamBroker(url=settings.REDIS_URL).with_result_backend(result_ba
 @broker.on_event(taskiq.TaskiqEvents.WORKER_STARTUP)
 async def startup(state: taskiq.TaskiqState) -> None:
     """Инициализация DI-контейнера при старте воркера."""
-    from notification_service.application.di.container import create_async_container
+    from notification_service.application.di.container import taskiq_container
 
-    container = create_async_container()
+    container = taskiq_container()
     setup_dishka(container, broker)
 
     state.dishka_container = container

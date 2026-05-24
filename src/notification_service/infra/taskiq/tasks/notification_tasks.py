@@ -3,20 +3,20 @@
 from dishka import FromDishka
 from dishka.integrations.taskiq import inject
 
-from notification_service.application.services.notification_service import NotificationService
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.domain.notification.entities.notification_entity import Notification
 from notification_service.domain.notification.exceptions.notification_exceptions import NotificationSendingFailed
+from notification_service.domain.notification.protocols import NotificationServiceProtocol
 from notification_service.domain.notification.protocols.notification_db_repo_protocol import NotificationDBProtocol
 from notification_service.infra.taskiq.taskiq_broker import broker
 
 
-@broker.task
+@broker.task(max_retries=0)
 @inject(patch_module=True)
 async def send_notification(
     notification: Notification,
     notification_db_repo: FromDishka[NotificationDBProtocol],
-    notification_service: FromDishka[NotificationService],
+    notification_service: FromDishka[NotificationServiceProtocol],
     logger_factory: FromDishka[LoggerFactory],
 ) -> None:
     """Отправить уведомление.
@@ -31,10 +31,10 @@ async def send_notification(
     logger.info(f"Starting notification {notification.uid} sending process..")
 
     notification.set_pending()
-    await notification_db_repo.update_status(entity=notification)
+    notification_db_repo.update_status(entity=notification)
 
     try:
-        await notification_service.send_notification(notification=notification)
+        notification_service.send_notification(notification=notification)
     except Exception as exc:
         if isinstance(exc, NotificationSendingFailed):
             logger.error("Notification Sending Failed", extra={"details": exc.details})
@@ -45,9 +45,9 @@ async def send_notification(
             )
             notification.error_text = "Internal Server Error"
         notification.set_failed()
-        await notification_db_repo.update_status(entity=notification)
+        notification_db_repo.update_status(entity=notification)
         return
 
     notification.set_sent()
-    await notification_db_repo.update_status(entity=notification)
+    notification_db_repo.update_status(entity=notification)
     logger.info(f"Finished notification {notification.uid} sending process")

@@ -16,7 +16,7 @@ class EnqueueNotificationUseCase:
         self.notification_tasks = notification_tasks
         self.logger = logger_factory(__name__)
 
-    async def execute(self, dto: EnqueueNotificationDTO) -> Notification:
+    def execute(self, dto: EnqueueNotificationDTO) -> Notification:
         """Добавить уведомление в очередь.
 
         :param dto: Данные добавления уведомления в очередь.
@@ -31,9 +31,9 @@ class EnqueueNotificationUseCase:
         )
         self.logger.info(f"Enqueueing notification {notification.uid}")
 
-        saved = await self.notification_db_repo.save(entity=notification)
+        saved = self.notification_db_repo.save(entity=notification)
 
-        await self.notification_tasks.enqueue_notification(notification=saved)
+        self.notification_tasks.enqueue_notification(notification=saved)
 
         self.logger.info(f"Notification {notification.uid} enqueued")
 

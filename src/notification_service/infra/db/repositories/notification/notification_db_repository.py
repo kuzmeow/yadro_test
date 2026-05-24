@@ -5,7 +5,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import delete, insert, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from notification_service.domain.common.entities.value_objects.config import PaginationConfig
 from notification_service.domain.notification.entities.dto.notification_dto import SearchNotificationDTO
@@ -19,7 +19,7 @@ from notification_service.infra.db.models.notification.notification_model import
 class NotificationPgRepository(NotificationDBProtocol):
     """Репозиторий управления уведомлениями в PostgreSQL."""
 
-    def __init__(self, db: AsyncSession, mapper: NotificationMapper, pagination_config: PaginationConfig) -> None:
+    def __init__(self, db: Session, mapper: NotificationMapper, pagination_config: PaginationConfig) -> None:
         """Сохранить адаптер БД и привязать используемые модели.
 
         :param db: Адаптер PostgreSQL, предоставляющий фабрику сессий.
@@ -31,7 +31,7 @@ class NotificationPgRepository(NotificationDBProtocol):
         self.mapper = mapper
         self.pagination_config = pagination_config
 
-    async def save(self, entity: NotificationEntity) -> NotificationEntity:
+    def save(self, entity: NotificationEntity) -> NotificationEntity:
         """Создать запись в хранилище.
 
         :param entity: Доменная сущность.
@@ -42,14 +42,14 @@ class NotificationPgRepository(NotificationDBProtocol):
         data["channel_data"] = asdict(entity.channel_data.value) if entity.channel_data is not None else None
         query = insert(self.model).values(**data).returning(self.model)
 
-        result = await self.db.execute(query)
-        await self.db.flush()
+        result = self.db.execute(query)
+        self.db.flush()
 
         obj = result.scalar_one()
 
         return self.mapper.orm_to_entity(obj=obj)
 
-    async def update_status(self, entity: NotificationEntity) -> None:
+    def update_status(self, entity: NotificationEntity) -> None:
         """Обновляет поле статуса.
 
         :param entity: Доменная сущность.
@@ -63,15 +63,15 @@ class NotificationPgRepository(NotificationDBProtocol):
 
         query = update(self.model).values(**data).where(self.model.uid == entity.uid).returning(self.model.uid)
 
-        result = await self.db.execute(query)
+        result = self.db.execute(query)
         updated_uid = result.scalar_one_or_none()
 
         if updated_uid is None:
             raise NotificationNotFound
 
-        await self.db.flush()
+        self.db.flush()
 
-    async def delete(self, uid: UUID) -> None:
+    def delete(self, uid: UUID) -> None:
         """Удалить запись из хранилища.
 
         :param uid: Идентификатор.
@@ -79,16 +79,16 @@ class NotificationPgRepository(NotificationDBProtocol):
         :return: None
         """
         query = delete(self.model).where(self.model.uid == uid).returning(self.model.uid)
-        result = await self.db.execute(query)
+        result = self.db.execute(query)
 
         deleted_uid = result.scalar_one_or_none()
 
         if deleted_uid is None:
             raise NotificationNotFound()
 
-        await self.db.flush()
+        self.db.flush()
 
-    async def get_by_uid(self, uid: UUID) -> NotificationEntity | None:
+    def get_by_uid(self, uid: UUID) -> NotificationEntity | None:
         """Получить данные проекта по идентификатору.
 
         :param uid: Идентификатор.
@@ -96,7 +96,7 @@ class NotificationPgRepository(NotificationDBProtocol):
         """
 
         query = select(self.model).where(self.model.uid == uid)
-        result = await self.db.execute(query)
+        result = self.db.execute(query)
         obj = result.scalar_one_or_none()
 
         if obj is None:
@@ -104,7 +104,7 @@ class NotificationPgRepository(NotificationDBProtocol):
 
         return self.mapper.orm_to_entity(obj=obj)
 
-    async def search(self, dto: SearchNotificationDTO) -> list[NotificationEntity]:
+    def search(self, dto: SearchNotificationDTO) -> list[NotificationEntity]:
         """Поиск данных по фильтрам с пагинацией.
 
         :param dto: Данные для поиска и пагинации.
@@ -124,7 +124,7 @@ class NotificationPgRepository(NotificationDBProtocol):
 
         query = query.limit(limit).offset(offset)
 
-        result = await self.db.execute(query)
+        result = self.db.execute(query)
         objs = result.scalars().all()
 
         return [self.mapper.orm_to_entity(obj=obj) for obj in objs]

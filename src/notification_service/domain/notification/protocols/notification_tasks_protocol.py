@@ -8,8 +8,7 @@ from notification_service.domain.notification.entities.notification_entity impor
 class NotificationTasksProtocol(Protocol):
     """Контракт адаптера постановки задач на отправку уведомлений."""
 
-    @staticmethod
-    async def enqueue_notification(notification: Notification) -> None:
+    def enqueue_notification(self, notification: Notification) -> None:
         """Запланировать отправку уведомления.
 
         :param notification: Доменная сущность уведомления.

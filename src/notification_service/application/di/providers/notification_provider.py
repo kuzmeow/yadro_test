@@ -1,5 +1,5 @@
 from dishka import Provider, Scope, provide
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from notification_service.application.services.notification_service import NotificationService
 from notification_service.application.use_cases.notification.enqueue_notification_use_case import (
@@ -13,6 +13,7 @@ from notification_service.domain.notification.protocols.notification_tasks_proto
 from notification_service.infra.db.mappers.notification.notification_mapper import NotificationMapper
 from notification_service.infra.db.repositories.notification.notification_db_repository import NotificationPgRepository
 from notification_service.infra.taskiq.adapters.taskiq_user_adapter import TaskIQNotificationTasksAdapter
+from notification_service.infra.taskiq.post_commit_queue import PostCommitQueue
 
 
 class NotificationProvider(Provider):
@@ -22,13 +23,13 @@ class NotificationProvider(Provider):
 
     @provide
     def get_project_db_repo(
-        self, db: AsyncSession, mapper: NotificationMapper, pagination_config: PaginationConfig
+        self, db: Session, mapper: NotificationMapper, pagination_config: PaginationConfig
     ) -> NotificationDBProtocol:
         return NotificationPgRepository(db=db, mapper=mapper, pagination_config=pagination_config)
 
     @provide
-    def get_notification_tasks(self) -> NotificationTasksProtocol:
-        return TaskIQNotificationTasksAdapter()
+    def get_notification_tasks(self, post_commit_queue: PostCommitQueue) -> NotificationTasksProtocol:
+        return TaskIQNotificationTasksAdapter(queue=post_commit_queue)
 
     @provide
     def get_notification_service(self, logger_factory: LoggerFactory) -> NotificationServiceProtocol:

@@ -15,9 +15,12 @@ run:
 	uv run app
 
 run_all:
-	docker compose up -d
+	docker compose up postgres redis -d
 	$(MAKE) run
+	$(MAKE) run_taskiq
 
+run_docker:
+	docker compose up -b
 
 create_migration:
 	@read -p "Введите описание ревизии: " msg; \

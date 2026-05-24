@@ -89,10 +89,10 @@ async def test_enqueue_notification_uc_scenarios(
 
     if result_exception:
         with pytest.raises(result_exception):
-            await uc.execute(chosen_dto)
+            uc.execute(chosen_dto)
         return
 
-    result = await uc.execute(chosen_dto)
+    result = uc.execute(chosen_dto)
     assert result == sample_notification
 
 
@@ -111,7 +111,7 @@ async def test_enqueue_notification_uc_flow(
 
     spy_notification_tasks_enqueue = spy(uc.notification_tasks, "enqueue_notification")
 
-    await uc.execute(valid_dto)
+    uc.execute(valid_dto)
 
     spy_notification_create.assert_called_once_with(
         notification_type=valid_dto.type,

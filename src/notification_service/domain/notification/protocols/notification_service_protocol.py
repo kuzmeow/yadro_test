@@ -4,7 +4,7 @@ from notification_service.domain.notification.entities.notification_entity impor
 
 
 class NotificationServiceProtocol(Protocol):
-    async def send_notification(self, notification: Notification) -> None:
+    def send_notification(self, notification: Notification) -> None:
         """Отправить уведомление.
 
         :param notification: Доменная сущность уведомления.
