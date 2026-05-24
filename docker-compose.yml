@@ -1,19 +1,37 @@
 services:
-  #  notification-service:
-  #    restart: always
-  #    container_name: notification-service
-  #    env_file:
-  #      - .env
-  #    command: make run
-  #    depends_on:
-  #      smetapp-db:
-  #        condition: service_healthy
-  #      smetapp-redis:
-  #        condition: service_healthy
+  notification-service:
+    restart: always
+    container_name: notification-service
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: bash -c "make migrate && make run"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  taskiq:
+    restart: always
+    container_name: notification-service-taskiq
+    build:
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    command: make run_taskiq
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   postgres:
     image: postgres:17.5-alpine
-    container_name: notification-service-test-pg
+    container_name: notification-service-pg
     restart: always
     env_file:
       - .env
@@ -23,21 +41,21 @@ services:
       - notification-service-test-pg:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
-      interval: 10s
+      interval: 5s
       timeout: 3s
       retries: 3
 
   redis:
     image: redis
     restart: always
-    container_name: notification-service-test-redis
+    container_name: notification-service-redis
     volumes:
       - notification-service-test-redis:/data
     ports:
       - "6379:6379"
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli", "ping" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
 

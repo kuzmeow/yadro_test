@@ -1,7 +1,5 @@
 """Создание и запуск приложения."""
 
-import asyncio
-
 import uvicorn
 from asgiref.wsgi import WsgiToAsgi
 from dishka.integrations.flask import setup_dishka
@@ -9,27 +7,29 @@ from flask import Flask
 from flask_cors import CORS
 
 from notification_service.application.config import ApplicationSettings
-from notification_service.application.di.container import create_container
+from notification_service.application.di.container import flask_container
 from notification_service.domain.common.protocols.logger_factory_protocol import LoggerFactory
 from notification_service.presentation.core.exception_handler import attach_exception_handlers
 from notification_service.presentation.routes import register_blueprints
 
 
 def run_app() -> None:
-    """Инициализировать FastAPI и запустить сервер Uvicorn.
+    """Инициализировать Flask и запустить сервер Uvicorn.
 
     :return: None
     """
 
+    # Какой кошмар
+    # Почему не FastApi?
     app = Flask("Notification Service")
 
     register_blueprints(app)
 
-    container = create_container()
+    container = flask_container()
     setup_dishka(container, app)
 
-    settings = asyncio.run(container.get(ApplicationSettings))
-    logger_factory = asyncio.run(container.get(LoggerFactory))
+    settings = container.get(ApplicationSettings)
+    logger_factory = container.get(LoggerFactory)
     logger = logger_factory(name=__name__)
 
     attach_exception_handlers(app=app, logger_factory=logger_factory)

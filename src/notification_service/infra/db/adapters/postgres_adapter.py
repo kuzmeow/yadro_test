@@ -1,23 +1,29 @@
 """Адаптер для подключения к PostgreSQL через SQLAlchemy."""
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from notification_service.application.config import ApplicationSettings
 
 
 class PostgresAdapter:
-    """Управляет созданием движка и фабрики асинхронных сессий."""
+    """Синхронный адаптер для PostgreSQL."""
 
     def __init__(self, settings: ApplicationSettings) -> None:
-        """Создать движок на основе URL из конфигурации."""
-
-        self._engine = create_async_engine(url=settings.DATABASE_URL)
-        self._session_factory = async_sessionmaker(bind=self._engine, expire_on_commit=False, autocommit=False)
+        db_url = settings.DATABASE_URL
+        self._engine = create_engine(
+            url=db_url,
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10,
+        )
+        self._session_factory = sessionmaker(
+            bind=self._engine,
+            expire_on_commit=False,
+            autocommit=False,
+        )
 
     @property
-    def get_session(self) -> async_sessionmaker[AsyncSession]:
-        """Предоставить фабрику асинхронных сессий SQLAlchemy.
-
-        :return: Фабрика `async_sessionmaker`.
-        """
+    def get_session(self) -> sessionmaker[Session]:
+        """Фабрика синхронных сессий."""
         return self._session_factory

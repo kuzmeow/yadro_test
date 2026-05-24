@@ -16,6 +16,9 @@ class ApplicationSettings(Dynaconf):
     SECURE_SAMESITE: Literal["lax", "none"]
     LOG_LEVEL: LoggerLevel
     PRE_REGISTERED_LOGGERS: list[str]
+    PAG_DEFAULT_LIMIT: int
+    PAG_DEFAULT_OFFSET: int
+    PAG_MAX_LIMIT: int
 
     def __init__(self, **kwargs):
         validators = [
@@ -30,6 +33,9 @@ class ApplicationSettings(Dynaconf):
             Validator("SECURE_SAMESITE", default="lax"),
             Validator("LOG_LEVEL", cast=LoggerLevel, default=LoggerLevel.INFO),
             Validator("PRE_REGISTERED_LOGGERS", cast=list[str], default=["uvicorn", "dishka"]),
+            Validator("PAG_DEFAULT_LIMIT", cast=int, default=20),
+            Validator("PAG_DEFAULT_OFFSET", cast=int, default=0),
+            Validator("PAG_MAX_LIMIT", cast=int, default=100),
         ]
 
         defaults = {

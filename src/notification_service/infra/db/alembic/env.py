@@ -1,14 +1,12 @@
 """Конфигурация Alembic для асинхронных миграций PostgreSQL."""
 
-import asyncio
 import os
 from logging.config import fileConfig
 
 from alembic import context
 from dotenv import load_dotenv
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from notification_service.infra.db.models import Base
 
@@ -39,17 +37,14 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    """Запустить миграции в офлайн-режиме без поднятия движка.
-
-    :return: None
-    """
-
+    """Запустить миграции в офлайн-режиме без поднятия движка."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -57,43 +52,30 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    """Выполнить миграции, используя переданное соединение.
-
-    :param connection: Активное соединение SQLAlchemy.
-    :return: None
-    """
-
-    context.configure(connection=connection, target_metadata=target_metadata)
+    """Выполнить миграции, используя переданное соединение."""
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
-async def run_async_migrations() -> None:
-    """Создать асинхронный движок и выполнить миграции внутри него.
-
-    :return: None
-    """
-
-    connectable = async_engine_from_config(
+def run_migrations_online() -> None:
+    """Запустить миграции в онлайновом режиме (синхронно)."""
+    connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        future=True,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        do_run_migrations(connection)
 
-    await connectable.dispose()
-
-
-def run_migrations_online() -> None:
-    """Запустить миграции в онлайновом режиме при наличии соединения.
-
-    :return: None
-    """
-
-    asyncio.run(run_async_migrations())
+    connectable.dispose()
 
 
 if context.is_offline_mode():

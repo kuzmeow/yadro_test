@@ -14,10 +14,19 @@ install_dev:
 run:
 	uv run app
 
+run_taskiq:
+	uv run taskiq worker notification_service.infra.taskiq.taskiq_broker:broker notification_service.infra.taskiq.tasks
+
 run_all:
-	docker compose up -d
+	docker compose up postgres redis -d
+	$(MAKE) migrate
 	$(MAKE) run
 
+run_docker_all:
+	docker compose up --build
+
+run_docker_back:
+	docker compose up notification-service taskiq --build
 
 create_migration:
 	@read -p "Введите описание ревизии: " msg; \
@@ -32,8 +41,6 @@ migrate:
 downgrade:
 	uv run alembic downgrade -1
 
-run_taskiq:
-	uv run taskiq worker notification_service.infra.taskiq.taskiq_broker:broker notification_service.infra.taskiq.tasks
 
 test:
 	export ENV_FOR_DYNACONF=test; uv run pytest
